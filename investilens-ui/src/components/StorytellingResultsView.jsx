@@ -8,6 +8,7 @@ import { PeerComparisonMatrix } from "./PeerComparisonMatrix.jsx";
 import { exportInstitutionalPDF, exportEvidenceCSV } from "../services/dossierExporter.js";
 import { DossierChatAssistant } from "./DossierChatAssistant.jsx";
 import { saveStockToWatchlist } from "../services/watchlistService.js";
+import { RegulatoryFilingsLinker } from "./RegulatoryFilingsLinker.jsx";
 
 export default function StorytellingResultsView({
   stockData,
@@ -421,9 +422,12 @@ DISCLAIMER: Decision-support assessment based on publicly verified web informati
             </div>
           </div>
         </div>
+
+        {/* 7. REAL-TIME SEC EDGAR & SEBI STATUTORY FILINGS LINKER (IMPROVEMENT 7) */}
+        <RegulatoryFilingsLinker stockData={stockData} params={params} />
       </div>
 
-      {/* 5. INTERACTIVE RAG RESEARCH SIDEKICK (IMPROVEMENT 5) */}
+      {/* INTERACTIVE RAG RESEARCH SIDEKICK (IMPROVEMENT 5) */}
       <DossierChatAssistant stockData={stockData} params={params} calculated={calculated} />
     </div>
   );
