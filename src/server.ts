@@ -12,6 +12,7 @@ import { HermesResearchExecutor, generateSynthesizedEvidence } from "./research/
 import { buildResearchReport } from "./research/research-report";
 import { ResearchRecord } from "./research/research-record";
 import { APPROVED_SOURCES } from "./research/sources";
+import { researchCache } from "./research/cache";
 
 const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 3008;
 const UI_DIST_DIR = path.join(__dirname, "..", "investilens-ui", "dist");
@@ -182,18 +183,47 @@ async function runResearchPipeline(recordId: string) {
   }
 }
 
+// PRODUCTION RATE LIMITER (STEP 6)
+const requestCounts = new Map<string, { count: number; resetAt: number }>();
+function checkRateLimit(ip: string): boolean {
+  const now = Date.now();
+  const entry = requestCounts.get(ip);
+  if (!entry || now > entry.resetAt) {
+    requestCounts.set(ip, { count: 1, resetAt: now + 60000 }); // 60 requests per minute
+    return true;
+  }
+  if (entry.count >= 120) return false;
+  entry.count++;
+  return true;
+}
+
 const server = http.createServer(async (req, res) => {
   const url = new URL(req.url || "/", `http://${req.headers.host}`);
   const pathname = url.pathname;
+  const clientIp = (req.headers["x-forwarded-for"] as string || req.socket.remoteAddress || "client").split(",")[0].trim();
 
   // Set CORS headers
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
 
   if (req.method === "OPTIONS") {
     res.writeHead(204);
     res.end();
+    return;
+  }
+
+  // Enforce Rate Limit for API endpoints
+  if (pathname.startsWith("/api/") && !checkRateLimit(clientIp)) {
+    res.writeHead(429, { "Content-Type": "application/json" });
+    res.end(JSON.stringify({ error: "Too many requests. Rate limit is 120 requests/minute. Please slow down." }));
+    return;
+  }
+
+  // HEALTH CHECK (STEP 4)
+  if (pathname === "/health" || pathname === "/api/health") {
+    res.writeHead(200, { "Content-Type": "application/json" });
+    res.end(JSON.stringify({ status: "healthy", service: "InvestiLens Engine", version: "2.5.0", timestamp: new Date().toISOString() }));
     return;
   }
 

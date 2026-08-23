@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: investilens
+    env: node
+    plan: starter
+    buildCommand: npm install && cd investilens-ui && npm install && npm run build && cd ..
+    startCommand: npx tsx src/server.ts
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 3008
+      - key: AI_API_KEY
+        sync: false
