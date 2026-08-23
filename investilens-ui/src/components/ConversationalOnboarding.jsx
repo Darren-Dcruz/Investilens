@@ -63,38 +63,54 @@ export default function ConversationalOnboarding({
   return (
     <div className="w-full max-w-3xl mx-auto flex flex-col gap-6 py-6 px-4">
       {/* Interactive Experience Level Switcher (Beginner vs Advanced) */}
-      <div className="flex items-center justify-between bg-[#0b110d] border border-brand-light/20 rounded-2xl p-2.5">
-        <div className="flex items-center gap-2 px-2">
-          <User className="w-4 h-4 text-brand-lime" />
-          <span className="text-xs font-mono text-slate-300">Research Experience Level:</span>
+      <div className="flex flex-col gap-2">
+        <div className="flex items-center justify-between bg-[#0b110d] border border-brand-light/20 rounded-2xl p-2.5">
+          <div className="flex items-center gap-2 px-2">
+            <User className="w-4 h-4 text-brand-lime" />
+            <span className="text-xs font-mono text-slate-300">Research Experience Level:</span>
+          </div>
+          <div className="flex items-center gap-1.5 bg-[#060907] p-1 rounded-xl border border-white/[0.06]">
+            <button
+              onClick={() => {
+                soundFx.playClick();
+                setUserLevel("beginner");
+              }}
+              className={`px-3 py-1.5 rounded-lg text-xs font-mono font-bold transition-all duration-200 ${
+                userLevel === "beginner"
+                  ? "bg-brand-medium text-[#060907] shadow-md shadow-brand-medium/30"
+                  : "text-slate-400 hover:text-white"
+              }`}
+            >
+              🌱 Beginner (Plain English)
+            </button>
+            <button
+              onClick={() => {
+                soundFx.playClick();
+                setUserLevel("advanced");
+              }}
+              className={`px-3 py-1.5 rounded-lg text-xs font-mono font-bold transition-all duration-200 ${
+                userLevel === "advanced"
+                  ? "bg-brand-lime text-[#060907] shadow-md shadow-brand-lime/30"
+                  : "text-slate-400 hover:text-white"
+              }`}
+            >
+              📊 Advanced (Full Wall St. Ratios)
+            </button>
+          </div>
         </div>
-        <div className="flex items-center gap-1.5 bg-[#060907] p-1 rounded-xl border border-white/[0.06]">
-          <button
-            onClick={() => {
-              soundFx.playClick();
-              setUserLevel("beginner");
-            }}
-            className={`px-3 py-1.5 rounded-lg text-xs font-mono font-bold transition-all duration-200 ${
-              userLevel === "beginner"
-                ? "bg-brand-medium text-[#060907] shadow-md shadow-brand-medium/30"
-                : "text-slate-400 hover:text-white"
-            }`}
-          >
-            Beginner (Plain English)
-          </button>
-          <button
-            onClick={() => {
-              soundFx.playClick();
-              setUserLevel("advanced");
-            }}
-            className={`px-3 py-1.5 rounded-lg text-xs font-mono font-bold transition-all duration-200 ${
-              userLevel === "advanced"
-                ? "bg-brand-lime text-[#060907] shadow-md shadow-brand-lime/30"
-                : "text-slate-400 hover:text-white"
-            }`}
-          >
-            Advanced (Full Wall St. Ratios)
-          </button>
+
+        {/* Dynamic Mode Explainer Callout */}
+        <div className={`p-3 rounded-xl border text-xs font-mono flex items-center justify-between transition-all ${
+          userLevel === "beginner"
+            ? "bg-emerald-950/20 border-emerald-500/30 text-emerald-300"
+            : "bg-brand-deep/30 border-brand-lime/40 text-brand-lime"
+        }`}>
+          <span>
+            {userLevel === "beginner"
+              ? "🌱 Beginner Mode: Financial jargon decoded into simple metaphors, traffic-light safety meters, and dollar-cost averaging guides."
+              : "📊 Advanced Mode: Wall St. Multiples Deck, ROIC-WACC Spread, Altman Z-Score, and 2-way DCF Sensitivity Grids enabled."}
+          </span>
+          <span className="text-[10px] font-bold uppercase opacity-80 ml-2">Personalized</span>
         </div>
       </div>
 

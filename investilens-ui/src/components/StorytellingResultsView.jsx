@@ -9,6 +9,8 @@ import { exportInstitutionalPDF, exportEvidenceCSV } from "../services/dossierEx
 import { DossierChatAssistant } from "./DossierChatAssistant.jsx";
 import { saveStockToWatchlist } from "../services/watchlistService.js";
 import { RegulatoryFilingsLinker } from "./RegulatoryFilingsLinker.jsx";
+import { BeginnerExperienceView } from "./BeginnerExperienceView.jsx";
+import { AdvancedQuantView } from "./AdvancedQuantView.jsx";
 
 export default function StorytellingResultsView({
   stockData,
@@ -118,6 +120,47 @@ DISCLAIMER: Decision-support assessment based on publicly verified web informati
               {calculated.profileVerdict}
             </span>
           </div>
+        </div>
+      </div>
+
+      {/* Experience Mode Switcher Bar (Beginner vs Advanced) */}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-[#0b110d] border border-brand-light/30 rounded-2xl p-3 text-xs font-mono shadow-lg">
+        <div className="flex items-center gap-2">
+          <span className="text-slate-300 font-bold">Active Lens Perspective:</span>
+          <span className={`px-2.5 py-0.5 rounded-md font-bold ${
+            userLevel === "beginner" ? "bg-brand-medium text-[#060907]" : "bg-brand-lime text-[#060907]"
+          }`}>
+            {userLevel === "beginner" ? "🌱 Beginner (Plain English)" : "📊 Advanced (Wall St. Institutional)"}
+          </span>
+        </div>
+
+        <div className="flex items-center gap-1.5 bg-[#060907] p-1 rounded-xl border border-white/[0.08]">
+          <button
+            onClick={() => {
+              soundFx.playClick();
+              setUserLevel("beginner");
+            }}
+            className={`px-3 py-1.5 rounded-lg font-bold transition-all ${
+              userLevel === "beginner"
+                ? "bg-brand-medium text-[#060907] shadow-md"
+                : "text-slate-400 hover:text-white"
+            }`}
+          >
+            🌱 Beginner Lens
+          </button>
+          <button
+            onClick={() => {
+              soundFx.playClick();
+              setUserLevel("advanced");
+            }}
+            className={`px-3 py-1.5 rounded-lg font-bold transition-all ${
+              userLevel === "advanced"
+                ? "bg-brand-lime text-[#060907] shadow-md"
+                : "text-slate-400 hover:text-white"
+            }`}
+          >
+            📊 Advanced Lens
+          </button>
         </div>
       </div>
 
@@ -266,6 +309,13 @@ DISCLAIMER: Decision-support assessment based on publicly verified web informati
             ))}
           </div>
         </div>
+
+        {/* DEDICATED EXPERIENCE VIEW: BEGINNER (PLAIN ENGLISH) OR ADVANCED (QUANT FACTORS) */}
+        {userLevel === "beginner" ? (
+          <BeginnerExperienceView stockData={stockData} params={params} calculated={calculated} />
+        ) : (
+          <AdvancedQuantView stockData={stockData} params={params} calculated={calculated} />
+        )}
 
         {/* 2. INTERACTIVE HISTORICAL PRICE CHART & MOVING AVERAGES (IMPROVEMENT 2) */}
         <InteractivePriceChart stockData={stockData} params={params} />
