@@ -12,19 +12,19 @@ export const MOCK_STOCKS = {
     summary: "India's largest private sector bank by assets, boasting an extensive nationwide branch network, industry-leading low-cost CASA deposit base, and solid post-merger integration trajectory.",
     
     scores: {
-      financialHealth: 88,
-      growthPotential: 84,
-      historicalPerformance: 86,
+      financialHealth: 82,
+      growthPotential: 72,
+      historicalPerformance: 74,
       valuation: 78,
-      debtLeverage: 82,
-      newsEvents: 85,
-      riskProfile: 80
+      debtLeverage: 76,
+      newsEvents: 72,
+      riskProfile: 74
     },
     
-    overallScore: 84,
+    overallScore: 76,
     evidenceConfidence: "HIGH",
     sourcesCount: 6,
-    researchStatus: "Strong Research Profile",
+    researchStatus: "Moderate Buy (76/100)",
     disclaimer: "This research assessment is generated via multi-source web cross-verification for decision-support purposes only. It does not constitute investment advice or order execution.",
     
     evidence: [
@@ -141,14 +141,6 @@ export const MOCK_STOCKS = {
           sentiment: "NEGATIVE",
           impact: "MEDIUM",
           summary: "Short-term selling pressure observed across large-cap financial indices."
-        },
-        {
-          headline: "HDFC Bank expands digital rural credit initiative across 10,000 new village hubs",
-          source: "Business Standard",
-          date: "1 week ago",
-          sentiment: "NEUTRAL",
-          impact: "LOW",
-          summary: "Long-term priority sector lending fulfillment with neutral short-term earnings impact."
         }
       ]
     },
@@ -167,13 +159,6 @@ export const MOCK_STOCKS = {
         significance: "HIGH",
         type: "Macro / Regulatory",
         impact: "Determines cost of funds trajectory and loan repricing dynamics."
-      },
-      {
-        title: "Annual Analyst & Investor Day Conference",
-        date: "June 12, 2026",
-        significance: "MEDIUM",
-        type: "Corporate Event",
-        impact: "Management guidance on 3-year digital transformation and subsidiary monetization."
       }
     ],
     
@@ -210,19 +195,19 @@ export const MOCK_STOCKS = {
     summary: "Dominant designer of high-performance graphics processing units (GPUs) and full-stack accelerated computing platforms powering the global generative AI revolution.",
     
     scores: {
-      financialHealth: 94,
-      growthPotential: 92,
-      historicalPerformance: 96,
-      valuation: 62,
-      debtLeverage: 90,
-      newsEvents: 88,
-      riskProfile: 74
+      financialHealth: 92,
+      growthPotential: 90,
+      historicalPerformance: 88,
+      valuation: 52, // Valuation multiple penalty (P/E 33.2x)
+      debtLeverage: 92,
+      newsEvents: 78,
+      riskProfile: 68 // Customer ASIC efforts & geopolitical export controls
     },
     
-    overallScore: 86,
+    overallScore: 80,
     evidenceConfidence: "HIGH",
     sourcesCount: 7,
-    researchStatus: "Strong Research Profile",
+    researchStatus: "Strong Bullish (80/100)",
     disclaimer: "This research assessment is generated via multi-source web cross-verification for decision-support purposes only. It does not constitute investment advice or order execution.",
     
     evidence: [
@@ -315,6 +300,79 @@ export const MOCK_STOCKS = {
     ]
   },
 
+  TESLA: {
+    ticker: "TSLA",
+    exchange: "NASDAQ",
+    market: "United States",
+    name: "Tesla Inc.",
+    sector: "Automotive, Clean Energy & AI",
+    currency: "USD",
+    currentPrice: 210.50,
+    priceChange: "+2.03%",
+    iconType: "zap",
+    summary: "Leading EV pioneer transitioning towards autonomous mobility (FSD/Robotaxi), humanoid robotics (Optimus), and utility-scale Megapack energy storage, facing automotive margin compression.",
+    scores: {
+      financialHealth: 64, // Decelerated automotive volume & margin compression
+      growthPotential: 76, // Megapack Energy + FSD monetization
+      historicalPerformance: 62, // High beta drawdown from 52-week highs
+      valuation: 38, // Severe multiple penalty (P/E 62.4x trailing, 175x fwd)
+      debtLeverage: 86, // Very low long-term debt relative to cash
+      newsEvents: 60, // Mixed sentiment regarding EV subsidies and price cuts
+      riskProfile: 52 // High regulatory investigation risk & intense Chinese EV competition
+    },
+    overallScore: 64,
+    evidenceConfidence: "HIGH",
+    sourcesCount: 6,
+    researchStatus: "Neutral / Hold (64/100)",
+    disclaimer: "This research assessment is generated via multi-source web cross-verification for decision-support purposes only. It does not constitute investment advice or order execution.",
+    evidence: [
+      {
+        id: "tsla-1",
+        claim: "Automotive gross margin excluding regulatory credits stabilized at 14.6%, down from 25%+ in FY2022",
+        sourceA: { name: "Tesla SEC Form 10-Q", type: "SEC Filing", url: "https://sec.gov/edgar", match: true },
+        sourceB: { name: "Yahoo Finance Financial Statements", type: "Financial Platform", url: "https://finance.yahoo.com/quote/TSLA", match: true },
+        confidence: "HIGH",
+        status: "VERIFIED",
+        metric: "Automotive Gross Margin",
+        discrepancy: null
+      }
+    ],
+    bullCase: [
+      { title: "Energy Storage Segment Hyper-Growth", desc: "Megapack deployments expanding over 125% YoY with high recurring cash generation.", impact: "HIGH", source: "Tesla Shareholder Deck" },
+      { title: "Autonomous Robotaxi & FSD Monetization", desc: "Software-like gross margins if unsupervised FSD reaches commercial deployment.", impact: "HIGH", source: "Ark Invest & Piper Sandler" }
+    ],
+    bearCase: [
+      { title: "Intensifying Global EV Price Wars", desc: "Aggressive low-cost competition from BYD and European automakers compressing auto ASPs.", impact: "HIGH", source: "Bloomberg Intelligence" },
+      { title: "Elevated Valuation Multiple Vulnerability", desc: "P/E multiple > 60x leaves significant downside if non-auto AI projects face timeline delays.", impact: "HIGH", source: "FactSet & Morgan Stanley" }
+    ],
+    newsSentiment: {
+      positivePercent: 48,
+      neutralPercent: 30,
+      negativePercent: 22,
+      totalArticlesParsed: 20,
+      articles: [
+        { headline: "Tesla Energy Megapack factory ramp accelerates", source: "Reuters", date: "2 days ago", sentiment: "POSITIVE", impact: "HIGH", summary: "High-margin commercial battery deployments." }
+      ]
+    },
+    upcomingEvents: [
+      { title: "Annual Shareholder Meeting & Robotaxi Update", date: "May 20, 2026", significance: "HIGH", type: "Corporate Event", impact: "Key autonomy milestone demonstrations." }
+    ],
+    hypotheticalAllocation: {
+      totalBudget: "USD 10,000",
+      strategy: "High-Beta Speculative Growth Strategy",
+      allocations: [
+        { asset: "Tesla Inc. (NASDAQ: TSLA)", amount: 3500, percent: 35, role: "Speculative Autonomy Anchor", rationale: "High growth potential with elevated valuation risk" },
+        { asset: "S&P 500 Index ETF (SPY)", amount: 4500, percent: 45, role: "Core Defensive Foundation", rationale: "Buffer against high single-stock volatility" },
+        { asset: "Liquid Cash / Reserve", amount: 2000, percent: 20, role: "Volatility Dry Powder", rationale: "Buyback on severe multiple pullbacks" }
+      ]
+    },
+    sourcesVisited: [
+      { name: "Yahoo Finance (TSLA)", url: "https://finance.yahoo.com/quote/TSLA", status: "200 OK", bytes: "152 KB", depth: 3 },
+      { name: "Nasdaq Official Feed", url: "https://www.nasdaq.com/market-activity/stocks/tsla", status: "200 OK", bytes: "165 KB", depth: 2 },
+      { name: "Reuters US Markets", url: "https://www.reuters.com/markets/companies/TSLA", status: "200 OK", bytes: "88 KB", depth: 2 }
+    ]
+  },
+
   RELIANCE: {
     ticker: "RELIANCE",
     exchange: "NSE / BSE",
@@ -327,18 +385,18 @@ export const MOCK_STOCKS = {
     iconType: "energy",
     summary: "India's highest market-cap conglomerate with a trinity of cash-generating refining assets, telecom disruptor Jio, and nationwide retail leadership.",
     scores: {
-      financialHealth: 85,
-      growthPotential: 82,
-      historicalPerformance: 84,
-      valuation: 75,
-      debtLeverage: 72,
-      newsEvents: 80,
-      riskProfile: 78
+      financialHealth: 75,
+      growthPotential: 76,
+      historicalPerformance: 72,
+      valuation: 68,
+      debtLeverage: 62, // Capex debt scrutiny
+      newsEvents: 74,
+      riskProfile: 70
     },
-    overallScore: 80,
+    overallScore: 72,
     evidenceConfidence: "HIGH",
     sourcesCount: 5,
-    researchStatus: "Strong Research Profile",
+    researchStatus: "Moderate Buy (72/100)",
     disclaimer: "This research assessment is generated via multi-source web cross-verification for decision-support purposes only. It does not constitute investment advice or order execution.",
     evidence: [
       {
@@ -392,9 +450,7 @@ export const MOCK_STOCKS = {
     sourcesVisited: [
       { name: "Yahoo Finance India (RELIANCE.NS)", url: "https://finance.yahoo.com/quote/RELIANCE.NS/", status: "200 OK", bytes: "135 KB", depth: 3 },
       { name: "NSE India Official Portal", url: "https://www.nseindia.com/get-quotes/equity?symbol=RELIANCE", status: "200 OK", bytes: "115 KB", depth: 2 },
-      { name: "Google Finance (RELIANCE:NSE)", url: "https://www.google.com/finance/quote/RELIANCE:NSE", status: "200 OK", bytes: "85 KB", depth: 2 },
-      { name: "Reuters India Desk", url: "https://www.reuters.com/markets/companies/RELI.NS", status: "200 OK", bytes: "72 KB", depth: 2 },
-      { name: "MarketWatch India", url: "https://www.marketwatch.com/investing/stock/reliance", status: "200 OK", bytes: "90 KB", depth: 2 }
+      { name: "Google Finance (RELIANCE:NSE)", url: "https://www.google.com/finance/quote/RELIANCE:NSE", status: "200 OK", bytes: "85 KB", depth: 2 }
     ]
   }
 };

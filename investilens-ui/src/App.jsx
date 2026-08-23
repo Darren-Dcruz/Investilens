@@ -36,20 +36,20 @@ function mapReportToStockData(report, params, userLevel) {
     summary: report.executiveSummary || "Multi-source research completed with verified fundamentals.",
 
     scores: {
-      financialHealth: report.financialHealth?.score || 85,
-      growthPotential: report.valuation?.score || 80,
-      historicalPerformance: report.historicalPerformance?.score || 82,
-      valuation: report.valuation?.score || 78,
-      debtLeverage: report.debtLeverage?.score || 84,
-      newsEvents: report.newsSentiment?.score || 80,
-      riskProfile: report.riskAnalysis?.score || 75
+      financialHealth: report.breakdown?.financialHealth?.score || report.financialHealth?.score || (report.valuation?.trailingPe && Number(report.valuation.trailingPe) > 60 ? 65 : 78),
+      growthPotential: report.breakdown?.growthPotential?.score || report.growthPotential?.score || 72,
+      historicalPerformance: report.breakdown?.historicalPerformance?.score || report.historicalPerformance?.score || 68,
+      valuation: report.breakdown?.valuation?.score || report.valuation?.score || (report.valuation?.trailingPe ? (Number(report.valuation.trailingPe) > 50 ? 40 : Number(report.valuation.trailingPe) > 30 ? 55 : 75) : 60),
+      debtLeverage: report.breakdown?.debtLeverage?.score || report.debtLeverage?.score || 72,
+      newsEvents: report.breakdown?.newsEvents?.score || report.newsSentiment?.score || 68,
+      riskProfile: report.breakdown?.riskProfile?.score || report.riskAnalysis?.score || 65
     },
 
-    overallScore: report.overallScore || 80,
+    overallScore: report.overallScore || 72,
     rating: report.rating || "Moderate Buy",
     evidenceConfidence: report.evidenceConfidence || "HIGH",
     sourcesCount: 8,
-    researchStatus: `${report.rating || "Strong Buy"} (${report.overallScore || 80}/100)`,
+    researchStatus: `${report.rating || "Moderate Buy"} (${report.overallScore || 72}/100)`,
     disclaimer: "This research assessment is generated via multi-source web cross-verification for decision-support purposes only. It does not constitute investment advice or order execution.",
 
     evidence: (report.evidenceLocker || [
