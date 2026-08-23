@@ -12,7 +12,7 @@
 
 <br />
 
-![InvestiLens Hero Dashboard](docs/assets/hero-banner.jpg)
+![InvestiLens Real Live UI Dashboard](docs/assets/real-hero-dashboard.png)
 
 <p align="center">
   <strong>InvestiLens</strong> transforms hours of fragmented financial due diligence into an autonomous, 25-second institutional research dossier. Powered by <strong>Nous Research's Hermes Agent</strong> and the <strong>Webcmd Browser Automation Skill</strong>, InvestiLens ingests, cross-verifies, and scores equities across 12 tier-1 market data and regulatory repositories with <strong>strict 2-stage Human-in-the-Loop governance</strong>.
