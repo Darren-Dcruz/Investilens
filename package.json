@@ -1,24 +1,25 @@
 {
   "name": "investilens",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "AI-Powered Investment Research Agent",
+  "main": "src/server.ts",
   "scripts": {
     "start": "tsx src/server.ts",
     "dev": "tsx src/server.ts",
+    "build": "cd investilens-ui && npm install --include=dev && npm run build && cd ..",
     "cli": "tsx src/index.ts",
     "test": "tsx test/pipeline.test.ts"
   },
   "keywords": [],
   "author": "",
-  "license": "ISC",
+  "license": "MIT",
   "type": "commonjs",
-  "devDependencies": {
-    "@types/node": "^26.2.0",
-    "tsx": "^4.23.12",
-    "typescript": "^7.0.2"
-  },
   "dependencies": {
+    "tsx": "^4.23.12",
+    "typescript": "^7.0.2",
     "yahoo-finance2": "^4.0.2"
+  },
+  "devDependencies": {
+    "@types/node": "^26.2.0"
   }
 }
