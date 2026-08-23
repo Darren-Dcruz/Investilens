@@ -8,6 +8,8 @@ import StorytellingResultsView from "./components/StorytellingResultsView.jsx";
 import HowItWorksModal from "./components/HowItWorksModal.jsx";
 import HumanApprovalModal from "./components/HumanApprovalModal.jsx";
 import BackendConfigModal from "./components/BackendConfigModal.jsx";
+import { WatchlistModal } from "./components/WatchlistModal.jsx";
+import { saveStockToWatchlist } from "./services/watchlistService.js";
 import { MOCK_STOCKS } from "./data/mockStocks.js";
 import { soundFx } from "./services/soundFx.js";
 
@@ -168,6 +170,9 @@ export default function App() {
 
   // How It Works Modal State
   const [isHowItWorksOpen, setIsHowItWorksOpen] = useState(false);
+
+  // Watchlist Modal State
+  const [isWatchlistOpen, setIsWatchlistOpen] = useState(false);
 
   // Human Checkpoint #2 Modal State
   const [checkpointModalType, setCheckpointModalType] = useState(null); // null | "findings"
@@ -417,6 +422,7 @@ export default function App() {
       <Header
         onStart={() => setCurrentView("onboarding")}
         onOpenHowItWorks={() => setIsHowItWorksOpen(true)}
+        onOpenWatchlist={() => setIsWatchlistOpen(true)}
         onGoHome={() => setCurrentView("hero")}
       />
 
@@ -478,6 +484,22 @@ export default function App() {
         )}
       </main>
 
+      {/* Portfolio Watchlist & Multi-Asset Tracking Modal (Improvement 6) */}
+      <WatchlistModal
+        isOpen={isWatchlistOpen}
+        onClose={() => setIsWatchlistOpen(false)}
+        onSelectStock={(savedItem) => {
+          if (MOCK_STOCKS[savedItem.ticker] || activeStockData) {
+            setParams((p) => ({
+              ...p,
+              ticker: savedItem.ticker,
+              companyQuery: savedItem.name
+            }));
+            setCurrentView("results");
+          }
+        }}
+      />
+
       {/* Human Checkpoint #2 Modal */}
       <HumanApprovalModal
         checkpointType={checkpointModalType}
@@ -499,14 +521,6 @@ export default function App() {
         isOpen={isHowItWorksOpen}
         onClose={() => setIsHowItWorksOpen(false)}
         onStart={() => setCurrentView("onboarding")}
-      />
-
-      {/* Backend Integration Settings Modal */}
-      <BackendConfigModal
-        isOpen={isSettingsOpen}
-        onClose={() => setIsSettingsOpen(false)}
-        config={backendConfig}
-        onSaveConfig={setBackendConfig}
       />
     </div>
   );

@@ -1,8 +1,8 @@
 import React from "react";
-import { ArrowRight, HelpCircle, Sparkles } from "lucide-react";
+import { ArrowRight, HelpCircle, Bookmark, Sparkles } from "lucide-react";
 import { soundFx } from "../services/soundFx.js";
 
-export default function Header({ onStart, onOpenHowItWorks, onGoHome }) {
+export default function Header({ onStart, onOpenHowItWorks, onOpenWatchlist, onGoHome }) {
   return (
     <header className="border-b border-brand-light/15 bg-[#060907]/90 backdrop-blur-2xl sticky top-0 z-40 px-4 lg:px-8 py-3.5 shadow-2xl">
       <div className="flex items-center justify-between max-w-[1700px] mx-auto w-full">
@@ -30,7 +30,19 @@ export default function Header({ onStart, onOpenHowItWorks, onGoHome }) {
         </div>
 
         {/* Minimal Navigation Controls */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3">
+          {/* Watchlist Trigger */}
+          <button
+            onClick={() => {
+              soundFx.playClick();
+              if (onOpenWatchlist) onOpenWatchlist();
+            }}
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-mono font-medium text-slate-300 hover:text-brand-lime border border-white/[0.08] hover:border-brand-light/30 bg-[#0b110d]/80 transition-all duration-200"
+          >
+            <Bookmark className="w-3.5 h-3.5 text-brand-lime" />
+            <span>Watchlist</span>
+          </button>
+
           <button
             onClick={() => {
               soundFx.playClick();

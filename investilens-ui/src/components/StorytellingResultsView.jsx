@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { ShieldCheck, CheckCircle2, Copy, Check, RefreshCw, Sliders, AlertTriangle, Building2, FileText, Download } from "lucide-react";
+import { ShieldCheck, CheckCircle2, Copy, Check, RefreshCw, Sliders, AlertTriangle, Building2, FileText, Download, Bookmark } from "lucide-react";
 import confetti from "canvas-confetti";
 import { soundFx } from "../services/soundFx.js";
 import { SCORING_WEIGHTS, calculateDeterministicScore } from "../services/scoringEngine.js";
@@ -7,6 +7,7 @@ import { InteractivePriceChart, InteractiveDCFCalculator } from "./InteractiveFi
 import { PeerComparisonMatrix } from "./PeerComparisonMatrix.jsx";
 import { exportInstitutionalPDF, exportEvidenceCSV } from "../services/dossierExporter.js";
 import { DossierChatAssistant } from "./DossierChatAssistant.jsx";
+import { saveStockToWatchlist } from "../services/watchlistService.js";
 
 export default function StorytellingResultsView({
   stockData,
@@ -16,6 +17,7 @@ export default function StorytellingResultsView({
   onResearchAnother
 }) {
   const [copied, setCopied] = useState(false);
+  const [isBookmarked, setIsBookmarked] = useState(false);
   const [isSimulatorOpen, setIsSimulatorOpen] = useState(false);
   const [customScores, setCustomScores] = useState(stockData?.scores || {
     financialHealth: 88,
@@ -126,6 +128,20 @@ DISCLAIMER: Decision-support assessment based on publicly verified web informati
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
+          {/* Bookmark to Watchlist */}
+          <button
+            onClick={() => {
+              soundFx.playClick();
+              saveStockToWatchlist(stockData, calculated, params);
+              setIsBookmarked(true);
+              setTimeout(() => setIsBookmarked(false), 2500);
+            }}
+            className="px-3 py-1.5 rounded-xl bg-brand-deep/50 text-brand-lime border border-brand-lime/40 hover:bg-brand-medium hover:text-[#060907] transition-all flex items-center gap-1.5 font-bold"
+          >
+            {isBookmarked ? <Check className="w-3.5 h-3.5" /> : <Bookmark className="w-3.5 h-3.5" />}
+            <span>{isBookmarked ? "Bookmarked!" : "Bookmark Dossier"}</span>
+          </button>
+
           {/* Institutional PDF Export */}
           <button
             onClick={() => {
