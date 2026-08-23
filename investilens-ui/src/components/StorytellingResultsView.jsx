@@ -3,6 +3,7 @@ import { ShieldCheck, CheckCircle2, Copy, Check, RefreshCw, Sliders, AlertTriang
 import confetti from "canvas-confetti";
 import { soundFx } from "../services/soundFx.js";
 import { SCORING_WEIGHTS, calculateDeterministicScore } from "../services/scoringEngine.js";
+import { InteractivePriceChart, InteractiveDCFCalculator } from "./InteractiveFinancialChart.jsx";
 
 export default function StorytellingResultsView({
   stockData,
@@ -222,11 +223,17 @@ DISCLAIMER: Decision-support assessment based on publicly verified web informati
           </div>
         </div>
 
-        {/* 2. BULL CASE (GROWTH PILLARS) */}
+        {/* 2. INTERACTIVE HISTORICAL PRICE CHART & MOVING AVERAGES (IMPROVEMENT 2) */}
+        <InteractivePriceChart stockData={stockData} params={params} />
+
+        {/* 3. INTERACTIVE DCF VALUATION SANDBOX & MARGIN OF SAFETY MODEL (IMPROVEMENT 2) */}
+        <InteractiveDCFCalculator stockData={stockData} params={params} />
+
+        {/* 4. BULL CASE (GROWTH PILLARS) */}
         <div className="bg-[#07130c] border border-brand-light/30 rounded-3xl p-6 flex flex-col gap-4 shadow-xl">
           <div className="flex items-center justify-between border-b border-brand-light/20 pb-3">
             <div className="flex items-center gap-2.5">
-              <span className="w-6 h-6 rounded-full bg-brand-light text-[#060907] flex items-center justify-center text-xs font-mono font-bold">2</span>
+              <span className="w-6 h-6 rounded-full bg-brand-light text-[#060907] flex items-center justify-center text-xs font-mono font-bold">4</span>
               <h3 className="text-base font-bold text-brand-lime font-mono">Why It May Be Attractive (Bull Case)</h3>
             </div>
             <span className="text-xs font-mono px-2.5 py-0.5 rounded-full bg-brand-medium/20 text-brand-lime font-bold">
