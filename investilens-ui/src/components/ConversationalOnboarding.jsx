@@ -451,15 +451,26 @@ export default function ConversationalOnboarding({
               {/* Verified Sources Scope */}
               <div className="pt-2">
                 <span className="text-[10px] text-slate-400 uppercase tracking-wider block mb-1.5">
-                  Active Authoritative Data & News Source (Focused Deep Research):
+                  Verified Data & News Sources (Multi-Source Cross-Verification):
                 </span>
                 <div className="flex flex-wrap gap-1.5">
                   {[
-                    "Reuters Markets Desk (reuters.com)"
+                    "Nasdaq",
+                    "NSE India",
+                    "BSE India",
+                    "Yahoo Finance",
+                    "Google Finance",
+                    "Reuters",
+                    "CNBC",
+                    "MarketWatch",
+                    "Investing.com",
+                    "MarketScreener",
+                    "Financial Times",
+                    "The Wall Street Journal"
                   ].map((src) => (
                     <span
                       key={src}
-                      className="px-3 py-1 rounded-lg bg-brand-deep/40 border border-brand-lime/30 text-xs text-brand-lime font-mono font-bold"
+                      className="px-2.5 py-0.5 rounded-lg bg-brand-deep/40 border border-brand-lime/30 text-[11px] text-brand-lime font-mono font-bold"
                     >
                       ✓ {src}
                     </span>
@@ -469,7 +480,7 @@ export default function ConversationalOnboarding({
             </div>
 
             <div className="p-3.5 rounded-xl bg-brand-deep/20 border border-brand-medium/40 text-xs font-mono text-brand-lime">
-              ✓ Ready to construct focused research plan with 2 Human-in-the-Loop approval checkpoints via Reuters Markets Desk.
+              ✓ Ready to construct multi-source research plan with 2 Human-in-the-Loop approval checkpoints across 12 tier-1 sources.
             </div>
           </div>
         )}

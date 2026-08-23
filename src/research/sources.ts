@@ -130,11 +130,40 @@ export const APPROVED_SOURCES: Record<string, SourceDefinition> = {
 };
 
 /**
- * Returns prioritized sources based on the market
- * Currently configured for single focused source: Reuters Markets Desk
+ * Returns prioritized sources based on the market (US, India, Global)
+ * Integrates all 12 approved tier-1 sources for multi-source cross-verification
  */
 export function getRecommendedSourcesForMarket(market: string = "US"): SourceDefinition[] {
+  const isIndia = market.toUpperCase() === "IN" || market.toUpperCase() === "INDIA";
+
+  if (isIndia) {
+    return [
+      APPROVED_SOURCES.nse_india,
+      APPROVED_SOURCES.bse_india,
+      APPROVED_SOURCES.google_finance,
+      APPROVED_SOURCES.yahoo_finance,
+      APPROVED_SOURCES.reuters,
+      APPROVED_SOURCES.cnbc,
+      APPROVED_SOURCES.marketwatch,
+      APPROVED_SOURCES.investing_com,
+      APPROVED_SOURCES.marketscreener,
+      APPROVED_SOURCES.financial_times,
+      APPROVED_SOURCES.wsj
+    ];
+  }
+
   return [
-    APPROVED_SOURCES.reuters
+    APPROVED_SOURCES.nasdaq,
+    APPROVED_SOURCES.google_finance,
+    APPROVED_SOURCES.yahoo_finance,
+    APPROVED_SOURCES.reuters,
+    APPROVED_SOURCES.cnbc,
+    APPROVED_SOURCES.marketwatch,
+    APPROVED_SOURCES.investing_com,
+    APPROVED_SOURCES.marketscreener,
+    APPROVED_SOURCES.financial_times,
+    APPROVED_SOURCES.wsj,
+    APPROVED_SOURCES.nse_india,
+    APPROVED_SOURCES.bse_india
   ];
 }

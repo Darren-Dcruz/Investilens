@@ -46,16 +46,47 @@ export default function LivingResearchCore({
 
   // Active Source Detection
   const activeSourceInfo = useMemo(() => {
+    const url = (currentUrl || "").toLowerCase();
+    if (url.includes("nasdaq.com")) {
+      return { name: "Nasdaq Official Exchange", domain: "nasdaq.com", metric: "Official Exchange Filings & 52W Range", color: "text-amber-300", badge: "bg-amber-400/20 text-amber-300" };
+    }
+    if (url.includes("nseindia.com") || url.includes("bseindia.com")) {
+      return { name: "NSE / BSE India Portal", domain: "nseindia.com", metric: "Official Indian Market Filings & Corporate Disclosures", color: "text-amber-300", badge: "bg-amber-400/20 text-amber-300" };
+    }
+    if (url.includes("google.com/finance") || url.includes("google.com")) {
+      return { name: "Google Finance", domain: "google.com/finance", metric: "Real-Time Quotes, P/E & Multi-Exchange Overview", color: "text-sky-300", badge: "bg-sky-400/20 text-sky-300" };
+    }
+    if (url.includes("yahoo.com") || url.includes("yahoofinance")) {
+      return { name: "Yahoo Finance", domain: "finance.yahoo.com", metric: "Historical Key Stats, Valuation & Multiples", color: "text-brand-lime", badge: "bg-brand-medium/20 text-brand-lime" };
+    }
+    if (url.includes("reuters.com")) {
+      return { name: "Reuters Markets", domain: "reuters.com", metric: "Macro News & Global Market Sentiment Feed", color: "text-emerald-300", badge: "bg-emerald-400/20 text-emerald-300" };
+    }
+    if (url.includes("cnbc.com")) {
+      return { name: "CNBC Markets", domain: "cnbc.com", metric: "Breaking Business News & Executive Commentary", color: "text-brand-lime", badge: "bg-brand-medium/20 text-brand-lime" };
+    }
+    if (url.includes("marketwatch.com")) {
+      return { name: "MarketWatch Financials", domain: "marketwatch.com", metric: "Financial Statements & Balance Sheet Health", color: "text-lime-300", badge: "bg-lime-400/20 text-lime-300" };
+    }
+    if (url.includes("investing.com")) {
+      return { name: "Investing.com", domain: "investing.com", metric: "Technical Indicators & Consensus Price Targets", color: "text-amber-300", badge: "bg-amber-400/20 text-amber-300" };
+    }
+    if (url.includes("marketscreener.com")) {
+      return { name: "MarketScreener", domain: "marketscreener.com", metric: "Deep Fundamental Analysis & Financial Health", color: "text-sky-300", badge: "bg-sky-400/20 text-sky-300" };
+    }
+    if (url.includes("wsj.com") || url.includes("ft.com")) {
+      return { name: "WSJ / Financial Times", domain: "wsj.com", metric: "Institutional Perspective & Macro Intelligence", color: "text-purple-300", badge: "bg-purple-400/20 text-purple-300" };
+    }
     return { 
-      name: "Reuters Markets Desk", 
-      domain: "reuters.com", 
-      metric: "Real-Time Quotes, P/E Valuation, Multiples, Financials & News Intelligence", 
+      name: "Tier-1 Multi-Source Network", 
+      domain: "investilens.ai", 
+      metric: "Cross-Checking Verified Fundamentals Across 12 Sources", 
       color: "text-brand-lime", 
       badge: "bg-brand-medium/20 text-brand-lime" 
     };
   }, [currentUrl]);
 
-  // Canvas Reuters Data Flow Mesh
+  // Canvas Multi-Source Data Flow Mesh
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -63,13 +94,14 @@ export default function LivingResearchCore({
     const ctx = canvas.getContext("2d");
     let reqId;
 
-    // Focused Single Source Architecture: Reuters Markets Desk & Sub-modules
+    // Multi-Source Architecture: Primary Financial Gateways
     const nodes = [
       { id: "core", name: "INVESTILENS CORE", x: 0.5, y: 0.5, color: "#F0FB43", radius: 28, isCore: true },
-      { id: "src-1", name: "Reuters Overview & Quotes", url: "reuters", x: 0.20, y: 0.25, color: "#7ED043", radius: 18 },
-      { id: "src-2", name: "Reuters Key Metrics & P/E", url: "reuters", x: 0.80, y: 0.25, color: "#F0FB43", radius: 18 },
-      { id: "src-3", name: "Reuters Financial Statements", url: "reuters", x: 0.18, y: 0.78, color: "#38bdf8", radius: 18 },
-      { id: "src-4", name: "Reuters Breaking News Wire", url: "reuters", x: 0.82, y: 0.78, color: "#4FB734", radius: 18 }
+      { id: "src-1", name: "Nasdaq / NSE / BSE", url: "nasdaq", x: 0.16, y: 0.20, color: "#F0FB43", radius: 17 },
+      { id: "src-2", name: "Google & Yahoo Finance", url: "google", x: 0.84, y: 0.20, color: "#38bdf8", radius: 17 },
+      { id: "src-3", name: "Reuters & CNBC Wire", url: "reuters", x: 0.12, y: 0.78, color: "#4FB734", radius: 17 },
+      { id: "src-4", name: "MarketWatch & Screener", url: "marketwatch", x: 0.88, y: 0.78, color: "#a3e635", radius: 17 },
+      { id: "src-5", name: "FT / WSJ / Investing.com", url: "investing", x: 0.50, y: 0.90, color: "#c084fc", radius: 17 }
     ];
 
     // Traveling photon particles

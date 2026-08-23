@@ -86,10 +86,10 @@ export default function HeroSection({ onBegin, onOpenHowItWorks }) {
           <div className="w-full max-w-xs p-4 rounded-2xl bg-[#0b110d]/75 backdrop-blur-md border border-brand-light/20 shadow-xl flex flex-col gap-1.5 hover:border-brand-light/40 transition-all duration-300 animate-in fade-in slide-in-from-left-6">
             <div className="flex items-center justify-between text-xs font-mono">
               <span className="text-white font-bold">MULTI-SOURCE CRAWL</span>
-              <span className="text-[10px] px-1.5 py-0.5 rounded bg-brand-deep/50 text-brand-lime font-bold">TOP 5 SOURCES</span>
+              <span className="text-[10px] px-1.5 py-0.5 rounded bg-brand-deep/50 text-brand-lime font-bold">12 PRIMARY SOURCES</span>
             </div>
             <p className="text-[11px] text-slate-300 font-sans text-right">
-              Reuters Markets Desk (Focused High-Speed Extraction).
+              Nasdaq, NSE, BSE, Yahoo, Google, Reuters, CNBC, MarketWatch, FT, WSJ, Investing.com.
             </p>
           </div>
         </div>
