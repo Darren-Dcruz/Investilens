@@ -6,6 +6,7 @@ import { SCORING_WEIGHTS, calculateDeterministicScore } from "../services/scorin
 import { InteractivePriceChart, InteractiveDCFCalculator } from "./InteractiveFinancialChart.jsx";
 import { PeerComparisonMatrix } from "./PeerComparisonMatrix.jsx";
 import { exportInstitutionalPDF, exportEvidenceCSV } from "../services/dossierExporter.js";
+import { DossierChatAssistant } from "./DossierChatAssistant.jsx";
 
 export default function StorytellingResultsView({
   stockData,
@@ -405,6 +406,9 @@ DISCLAIMER: Decision-support assessment based on publicly verified web informati
           </div>
         </div>
       </div>
+
+      {/* 5. INTERACTIVE RAG RESEARCH SIDEKICK (IMPROVEMENT 5) */}
+      <DossierChatAssistant stockData={stockData} params={params} calculated={calculated} />
     </div>
   );
 }
