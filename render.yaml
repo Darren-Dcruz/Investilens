@@ -4,7 +4,7 @@ services:
     env: node
     plan: free
     buildCommand: npm install --include=dev && cd investilens-ui && npm install --include=dev && npm run build && cd ..
-    startCommand: npx tsx src/server.ts
+    startCommand: node node_modules/tsx/dist/cli.mjs src/server.ts
     healthCheckPath: /health
     autoDeploy: true
     envVars:

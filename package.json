@@ -4,11 +4,11 @@
   "description": "AI-Powered Investment Research Agent",
   "main": "src/server.ts",
   "scripts": {
-    "start": "tsx src/server.ts",
-    "dev": "tsx src/server.ts",
+    "start": "node node_modules/tsx/dist/cli.mjs src/server.ts",
+    "dev": "node node_modules/tsx/dist/cli.mjs src/server.ts",
     "build": "cd investilens-ui && npm install --include=dev && npm run build && cd ..",
-    "cli": "tsx src/index.ts",
-    "test": "tsx test/pipeline.test.ts"
+    "cli": "node node_modules/tsx/dist/cli.mjs src/index.ts",
+    "test": "node node_modules/tsx/dist/cli.mjs test/pipeline.test.ts"
   },
   "keywords": [],
   "author": "",
