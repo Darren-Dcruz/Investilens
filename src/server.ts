@@ -169,7 +169,7 @@ async function runResearchPipeline(recordId: string) {
     addLog(recordId, "Activating verified deterministic evidence generator to finalize research report...");
 
     if (record) {
-      const synthesized = generateSynthesizedEvidence(record);
+      const synthesized = await generateSynthesizedEvidence(record);
       record.evidence = synthesized;
       const { record: scoredRecord, verification } = analyzeAndScore(record);
       record = scoredRecord;
