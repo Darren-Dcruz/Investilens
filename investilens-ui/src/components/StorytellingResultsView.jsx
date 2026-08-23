@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from "react";
-import { ShieldCheck, CheckCircle2, Copy, Check, RefreshCw, Sliders, AlertTriangle, Building2 } from "lucide-react";
+import { ShieldCheck, CheckCircle2, Copy, Check, RefreshCw, Sliders, AlertTriangle, Building2, FileText, Download } from "lucide-react";
 import confetti from "canvas-confetti";
 import { soundFx } from "../services/soundFx.js";
 import { SCORING_WEIGHTS, calculateDeterministicScore } from "../services/scoringEngine.js";
 import { InteractivePriceChart, InteractiveDCFCalculator } from "./InteractiveFinancialChart.jsx";
 import { PeerComparisonMatrix } from "./PeerComparisonMatrix.jsx";
+import { exportInstitutionalPDF, exportEvidenceCSV } from "../services/dossierExporter.js";
 
 export default function StorytellingResultsView({
   stockData,
@@ -123,7 +124,31 @@ DISCLAIMER: Decision-support assessment based on publicly verified web informati
           <span className="text-slate-300">Evidence Confidence: <strong className="text-brand-lime">HIGH (6 Sources Cross-Verified)</strong></span>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          {/* Institutional PDF Export */}
+          <button
+            onClick={() => {
+              soundFx.playClick();
+              exportInstitutionalPDF(stockData, params, calculated);
+            }}
+            className="px-3 py-1.5 rounded-xl bg-brand-deep text-brand-lime border border-brand-lime hover:bg-brand-medium hover:text-[#060907] transition-all flex items-center gap-1.5 font-bold shadow-lg"
+          >
+            <FileText className="w-3.5 h-3.5" />
+            <span>Export Institutional PDF</span>
+          </button>
+
+          {/* Evidence CSV Export */}
+          <button
+            onClick={() => {
+              soundFx.playClick();
+              exportEvidenceCSV(stockData, params);
+            }}
+            className="px-3 py-1.5 rounded-xl bg-[#060907] text-slate-300 border border-white/[0.1] hover:text-white hover:border-brand-lime/40 transition-all flex items-center gap-1.5 font-bold"
+          >
+            <Download className="w-3.5 h-3.5 text-brand-lime" />
+            <span>Evidence CSV</span>
+          </button>
+
           <button
             onClick={() => {
               soundFx.playClick();
@@ -140,7 +165,7 @@ DISCLAIMER: Decision-support assessment based on publicly verified web informati
             className="px-3 py-1.5 rounded-xl bg-brand-medium/25 text-brand-lime border border-brand-lime/40 hover:bg-brand-medium/40 transition-all flex items-center gap-1.5 font-bold"
           >
             {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
-            <span>{copied ? "Copied!" : "Copy Report"}</span>
+            <span>{copied ? "Copied!" : "Copy Markdown"}</span>
           </button>
 
           <button
