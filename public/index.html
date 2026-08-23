@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>InvestiLens — AI Investment Research Agent Dashboard</title>
+  <meta name="description" content="Transparent, browser-native AI investment research agent with multi-source verification, deterministic scoring, and human-in-the-loop governance.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- TOP NAV -->
+  <header class="navbar">
+    <div class="nav-brand">
+      <div class="logo-icon">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8"></circle>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          <path d="M11 8v6M8 11h6" stroke="var(--primary)"></path>
+        </svg>
+      </div>
+      <div>
+        <h1 class="logo-title">InvestiLens<span class="badge-agent">AI AGENT</span></h1>
+        <p class="logo-subtitle">Transparent Research • Multi-Source Verification • Deterministic Scoring</p>
+      </div>
+    </div>
+
+    <div class="nav-controls">
+      <div class="scenario-badge" id="scenarioBadge">
+        <span class="scenario-dot"></span>
+        <span id="scenarioText">Demo Scenario: ₹50,000 • Beginner • Moderate Risk (3–5Y)</span>
+      </div>
+      <button class="btn-secondary btn-sm" id="btnQuickDemo">Load Hackathon Demo (NVDA)</button>
+    </div>
+  </header>
+
+  <!-- MAIN APP CONTAINER -->
+  <main class="dashboard-grid">
+    <!-- LEFT PANEL: USER INPUT & PREFERENCES -->
+    <aside class="sidebar-panel">
+      <div class="panel-card">
+        <div class="card-header">
+          <div class="card-title-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+              <circle cx="12" cy="7" r="4"></circle>
+            </svg>
+          </div>
+          <h2>Investor Profile</h2>
+        </div>
+
+        <form id="researchForm" class="form-layout">
+          <div class="form-group">
+            <label for="companyInput">Company Name</label>
+            <input type="text" id="companyInput" name="company" value="NVIDIA" required>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="tickerInput">Stock Ticker</label>
+              <input type="text" id="tickerInput" name="ticker" value="NVDA" required>
+            </div>
+            <div class="form-group">
+              <label for="marketSelect">Market</label>
+              <select id="marketSelect" name="market">
+                <option value="US" selected>US (NASDAQ/NYSE)</option>
+                <option value="IN">India (NSE/BSE)</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="amountInput">Capital (₹ / $)</label>
+              <input type="number" id="amountInput" name="amount" value="50000" step="1000">
+            </div>
+            <div class="form-group">
+              <label for="riskSelect">Risk Tolerance</label>
+              <select id="riskSelect" name="risk">
+                <option value="low">Conservative (Low)</option>
+                <option value="medium" selected>Moderate (Medium)</option>
+                <option value="high">Aggressive (High)</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="horizonSelect">Time Horizon</label>
+              <select id="horizonSelect" name="horizon">
+                <option value="1-2 years">Short (1–2 yrs)</option>
+                <option value="3-5 years" selected>Medium (3–5 yrs)</option>
+                <option value="5+ years">Long (5+ yrs)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="expSelect">Experience</label>
+              <select id="expSelect" name="experience">
+                <option value="Beginner" selected>Beginner</option>
+                <option value="Intermediate">Intermediate</option>
+                <option value="Advanced">Advanced</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="sectorInput">Industry Sector</label>
+            <input type="text" id="sectorInput" name="sector" value="Semiconductors & AI Hardware">
+          </div>
+
+          <button type="submit" id="btnStartResearch" class="btn-primary btn-block">
+            <span>Generate Research Plan</span>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+              <polyline points="12 5 19 12 12 19"></polyline>
+            </svg>
+          </button>
+        </form>
+      </div>
+
+      <!-- SOURCES CATALOG -->
+      <div class="panel-card mt-3">
+        <div class="card-header">
+          <div class="card-title-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="2" y1="12" x2="22" y2="12"></line>
+              <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+            </svg>
+          </div>
+          <h3>Verified Sources</h3>
+        </div>
+        <p class="text-xs text-muted mb-2">Live browser-native research targets:</p>
+        <div class="source-pills" id="sourcePills">
+          <span class="source-pill">Yahoo Finance</span>
+          <span class="source-pill">Nasdaq</span>
+          <span class="source-pill">Google Finance</span>
+          <span class="source-pill">Reuters</span>
+          <span class="source-pill">CNBC</span>
+          <span class="source-pill">MarketWatch</span>
+          <span class="source-pill">MarketScreener</span>
+          <span class="source-pill">NSE / BSE India</span>
+        </div>
+      </div>
+    </aside>
+
+    <!-- CENTER PANEL: LIVE AGENT WORKFLOW & APPROVALS -->
+    <section class="center-panel">
+      <!-- HUMAN APPROVAL BANNER #1 -->
+      <div id="approvalBanner1" class="approval-card hidden">
+        <div class="approval-badge">HUMAN APPROVAL REQUIRED #1</div>
+        <h3 class="approval-title">Review Proposed Research Plan</h3>
+        <p class="approval-desc" id="planSummaryText">
+          The agent proposed 10 research dimensions across 8 sources for <strong>NVIDIA (NVDA)</strong>.
+        </p>
+        <div class="plan-preview" id="planPreviewList"></div>
+        <div class="approval-actions">
+          <button class="btn-success" id="btnApprovePlan">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+            Approve & Launch Research
+          </button>
+          <button class="btn-outline" id="btnModifyPlan">Modify Criteria</button>
+        </div>
+      </div>
+
+      <!-- HUMAN APPROVAL BANNER #2 -->
+      <div id="approvalBanner2" class="approval-card approval-final hidden">
+        <div class="approval-badge badge-warning">HUMAN APPROVAL REQUIRED #2</div>
+        <h3 class="approval-title">Preliminary Research Complete</h3>
+        <p class="approval-desc">
+          The agent has gathered multi-source evidence and calculated a deterministic score of <strong id="prelimScore">79/100 (Moderate Buy)</strong>.
+        </p>
+        <div class="prelim-summary-box">
+          <div class="prelim-item">
+            <span class="prelim-label">Key Opportunity:</span>
+            <span class="prelim-val" id="prelimOpp">Data center acceleration and full-stack CUDA software moat</span>
+          </div>
+          <div class="prelim-item">
+            <span class="prelim-label">Key Risk:</span>
+            <span class="prelim-val" id="prelimRisk">Elevated valuation multiple and customer custom ASIC development</span>
+          </div>
+        </div>
+        <p class="text-xs text-muted mb-3">Would you like the agent to compile the final 18-section research report?</p>
+        <div class="approval-actions">
+          <button class="btn-success" id="btnApproveFinal">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+            Generate Final Report
+          </button>
+          <button class="btn-outline" id="btnReResearch">Research Again</button>
+        </div>
+      </div>
+
+      <!-- AGENT TIMELINE -->
+      <div class="panel-card timeline-card">
+        <div class="card-header">
+          <div class="card-title-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+            </svg>
+          </div>
+          <h2>Live Agent Activity Timeline</h2>
+          <span class="status-indicator" id="agentStatusBadge">IDLE</span>
+        </div>
+
+        <div class="timeline" id="agentTimeline">
+          <div class="timeline-step" id="step-plan" data-status="ready">
+            <div class="step-icon">1</div>
+            <div class="step-content">
+              <h4>Planning Research</h4>
+              <p>Formulating research plan and source query strategy</p>
+            </div>
+          </div>
+
+          <div class="timeline-step" id="step-approval1" data-status="ready">
+            <div class="step-icon">2</div>
+            <div class="step-content">
+              <h4>Human Approval #1</h4>
+              <p>User verifies and authorizes research dimensions</p>
+            </div>
+          </div>
+
+          <div class="timeline-step" id="step-browser" data-status="ready">
+            <div class="step-icon">3</div>
+            <div class="step-content">
+              <h4>Live Browser Research (Hermes / Webcmd)</h4>
+              <p>Extracting quotes, filings, valuation, and news from real websites</p>
+            </div>
+          </div>
+
+          <div class="timeline-step" id="step-verify" data-status="ready">
+            <div class="step-icon">4</div>
+            <div class="step-content">
+              <h4>Cross-Source Verification</h4>
+              <p>Detecting conflicts and verifying structured evidence items</p>
+            </div>
+          </div>
+
+          <div class="timeline-step" id="step-score" data-status="ready">
+            <div class="step-icon">5</div>
+            <div class="step-content">
+              <h4>Deterministic 7-Dimension Scoring</h4>
+              <p>Explainable mathematical model without LLM hallucination</p>
+            </div>
+          </div>
+
+          <div class="timeline-step" id="step-approval2" data-status="ready">
+            <div class="step-icon">6</div>
+            <div class="step-content">
+              <h4>Human Approval #2</h4>
+              <p>Pre-report review and final authorization</p>
+            </div>
+          </div>
+
+          <div class="timeline-step" id="step-report" data-status="ready">
+            <div class="step-icon">7</div>
+            <div class="step-content">
+              <h4>Comprehensive Final Report</h4>
+              <p>Compiling 18-section investment research dossier</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- AGENT LIVE CONSOLE LOG -->
+        <div class="console-box mb-3">
+          <div class="console-header">
+            <span>Agent Process Audit Log</span>
+            <span class="pulse-dot"></span>
+          </div>
+          <div class="console-logs" id="consoleLogs">
+            <div class="log-line text-muted">[System ready] Fill out profile and click "Generate Research Plan" to begin.</div>
+          </div>
+        </div>
+
+        <!-- WEBCMD BROWSER AUTOMATION STREAM (HACKATHON REQUIREMENT) -->
+        <div class="console-box webcmd-box">
+          <div class="console-header webcmd-header">
+            <div class="webcmd-header-left">
+              <span class="webcmd-skill-badge">SKILL: WEBCMD-BROWSER v2.4</span>
+              <span class="webcmd-title">Browser Command Invocations</span>
+            </div>
+            <span class="webcmd-counter" id="webcmdCount">0 Commands</span>
+          </div>
+          <div class="webcmd-logs" id="webcmdLogs">
+            <div class="webcmd-entry webcmd-idle">
+              <span class="webcmd-tag">IDLE</span>
+              <span class="webcmd-detail">Waiting for research launch to dispatch browser automation tasks...</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- RIGHT PANEL: RESEARCH REPORT DASHBOARD -->
+    <section class="main-report-panel">
+      <div id="reportPlaceholder" class="placeholder-card">
+        <div class="placeholder-icon">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+            <polyline points="14 2 14 8 20 8"></polyline>
+            <line x1="16" y1="13" x2="8" y2="13"></line>
+            <line x1="16" y1="17" x2="8" y2="17"></line>
+            <polyline points="10 9 9 9 8 9"></polyline>
+          </svg>
+        </div>
+        <h3>No Report Generated Yet</h3>
+        <p>Start research and complete human approvals to view the transparent research report.</p>
+      </div>
+
+      <!-- REPORT CONTAINER -->
+      <div id="reportContainer" class="report-content hidden">
+        <!-- HEADER OVERVIEW -->
+        <div class="report-header-card">
+          <div class="report-meta-row">
+            <div>
+              <span class="ticker-tag" id="repTicker">NVDA</span>
+              <h2 class="company-heading" id="repCompanyName">NVIDIA Corporation</h2>
+              <p class="text-muted text-sm" id="repGeneratedAt">Generated: Aug 22, 2026</p>
+            </div>
+            <div class="score-card-radial">
+              <div class="radial-ring">
+                <span class="score-number" id="repOverallScore">79</span>
+                <span class="score-max">/100</span>
+              </div>
+              <div class="score-badge-wrap">
+                <span class="score-rating-badge" id="repRating">Moderate Buy</span>
+                <span class="confidence-badge" id="repConfidence">HIGH CONFIDENCE</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- EXECUTIVE SUMMARY -->
+          <div class="exec-summary-box">
+            <h4>Executive Summary</h4>
+            <p id="repExecSummary"></p>
+          </div>
+        </div>
+
+        <!-- KPI GRID -->
+        <div class="metrics-grid">
+          <div class="metric-card">
+            <span class="metric-label">Current Price</span>
+            <span class="metric-value" id="repPrice">$214.72</span>
+            <span class="metric-sub" id="repChange">-$2.13 (-0.98%)</span>
+          </div>
+          <div class="metric-card">
+            <span class="metric-label">Market Cap</span>
+            <span class="metric-value" id="repMarketCap">$5.25T</span>
+            <span class="metric-sub">Multi-Source Verified</span>
+          </div>
+          <div class="metric-card">
+            <span class="metric-label">Trailing P/E</span>
+            <span class="metric-value" id="repPe">33.21</span>
+            <span class="metric-sub" id="repFwdPe">Fwd P/E: 24.75</span>
+          </div>
+          <div class="metric-card">
+            <span class="metric-label">Revenue Growth</span>
+            <span class="metric-value highlight-green" id="repRevGrowth">+114%</span>
+            <span class="metric-sub" id="repMargin">Margin: 62.97%</span>
+          </div>
+        </div>
+
+        <!-- 52-WEEK RANGE SLIDER -->
+        <div class="panel-card mb-3">
+          <div class="card-header">
+            <h4>52-Week Trading Band</h4>
+            <span class="text-xs text-muted" id="rep52RangeText">$164.07 — $236.54</span>
+          </div>
+          <div class="range-track">
+            <div class="range-fill" id="repRangeFill" style="left: 20%; width: 60%;"></div>
+            <div class="range-pin" id="repRangePin" style="left: 70%;"></div>
+          </div>
+          <div class="range-labels">
+            <span id="rep52Low">$164.07 (Low)</span>
+            <span id="rep52Current">$214.72 (Current)</span>
+            <span id="rep52High">$236.54 (High)</span>
+          </div>
+        </div>
+
+        <!-- DETERMINISTIC SCORING BREAKDOWN -->
+        <div class="panel-card mb-3">
+          <div class="card-header">
+            <h4>Deterministic Score Breakdown (Explainable Model)</h4>
+            <span class="badge-tag">No LLM Guesswork</span>
+          </div>
+          <div class="scoring-bars" id="repScoringBars"></div>
+        </div>
+
+        <!-- BULL VS BEAR DUEL -->
+        <div class="duel-grid mb-3">
+          <div class="bull-card">
+            <div class="duel-header">
+              <span class="bull-icon">✓</span>
+              <h4>Bull Case (Why it may be attractive)</h4>
+            </div>
+            <ul class="bullet-list" id="repBullList"></ul>
+          </div>
+
+          <div class="bear-card">
+            <div class="duel-header">
+              <span class="bear-icon">⚠</span>
+              <h4>Bear Case (Why to be cautious)</h4>
+            </div>
+            <ul class="bullet-list" id="repBearList"></ul>
+          </div>
+        </div>
+
+        <!-- NEWS INTELLIGENCE & SENTIMENT -->
+        <div class="panel-card mb-3">
+          <div class="card-header">
+            <h4>News Intelligence & Sentiment Analysis</h4>
+            <div class="sentiment-meter">
+              <span class="sent-pill sent-pos" id="repSentPos">0% Pos</span>
+              <span class="sent-pill sent-neu" id="repSentNeu">50% Neu</span>
+              <span class="sent-pill sent-neg" id="repSentNeg">50% Neg</span>
+            </div>
+          </div>
+          <div class="news-list" id="repNewsList"></div>
+        </div>
+
+        <!-- UPCOMING EVENTS & RISKS -->
+        <div class="two-col-grid mb-3">
+          <div class="panel-card">
+            <div class="card-header">
+              <h4>Upcoming Material Events</h4>
+            </div>
+            <div class="events-list" id="repEventsList"></div>
+          </div>
+
+          <div class="panel-card">
+            <div class="card-header">
+              <h4>Identified Risk Factors</h4>
+            </div>
+            <div class="risks-list" id="repRisksList"></div>
+          </div>
+        </div>
+
+        <!-- HYPOTHETICAL ALLOCATION FOR ₹50,000 SCENARIO -->
+        <div class="panel-card allocation-card mb-3">
+          <div class="card-header">
+            <h4>Prudent Portfolio Allocation (₹50,000 Beginner Profile)</h4>
+            <span class="badge-tag">Educational Strategy</span>
+          </div>
+          <div class="alloc-grid" id="repAllocGrid">
+            <div class="alloc-item">
+              <span class="alloc-lbl">Target Stock (NVIDIA)</span>
+              <span class="alloc-val highlight-blue" id="repAllocStock">₹10,000 (20%)</span>
+            </div>
+            <div class="alloc-item">
+              <span class="alloc-lbl">Diversified Equity / ETFs</span>
+              <span class="alloc-val highlight-green" id="repAllocEtf">₹35,000 (70%)</span>
+            </div>
+            <div class="alloc-item">
+              <span class="alloc-lbl">Cash / Buffer</span>
+              <span class="alloc-val" id="repAllocCash">₹15,000 (30%)</span>
+            </div>
+          </div>
+          <p class="text-xs text-muted mt-2" id="repAllocRationale"></p>
+        </div>
+
+        <!-- AUDIT & SOURCES -->
+        <div class="panel-card mb-3">
+          <div class="card-header">
+            <h4>Research Audit & Source Attribution</h4>
+            <span class="text-xs text-muted" id="repVerifiedCount">20 Verified Items</span>
+          </div>
+          <div class="sources-grid" id="repSourcesGrid"></div>
+        </div>
+
+        <!-- DISCLAIMER -->
+        <div class="disclaimer-box">
+          <p id="repDisclaimer"></p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
