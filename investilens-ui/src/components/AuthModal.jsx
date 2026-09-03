@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   X,
   Lock,
@@ -27,6 +27,25 @@ export function AuthModal({ isOpen, onClose, onAuthSuccess }) {
   const [error, setError] = useState(null);
   const [successMsg, setSuccessMsg] = useState(null);
 
+  const resetForm = () => {
+    setFormData({
+      identifier: "",
+      username: "",
+      email: "",
+      password: "",
+      name: ""
+    });
+    setError(null);
+    setSuccessMsg(null);
+  };
+
+  // Clear inputs and messages whenever modal is opened
+  useEffect(() => {
+    if (isOpen) {
+      resetForm();
+    }
+  }, [isOpen]);
+
   if (!isOpen) return null;
 
   const handleChange = (e) => {
@@ -35,6 +54,18 @@ export function AuthModal({ isOpen, onClose, onAuthSuccess }) {
       [e.target.name]: e.target.value
     }));
     setError(null);
+  };
+
+  const handleClose = () => {
+    soundFx.playClick();
+    resetForm();
+    onClose();
+  };
+
+  const handleModeChange = (newMode) => {
+    soundFx.playClick();
+    setMode(newMode);
+    resetForm();
   };
 
   const handleDemoFill = async () => {
@@ -77,9 +108,10 @@ export function AuthModal({ isOpen, onClose, onAuthSuccess }) {
       }
 
       setTimeout(() => {
+        resetForm();
         if (onAuthSuccess) onAuthSuccess(result.user);
         onClose();
-      }, 1000);
+      }, 900);
     } catch (err) {
       let msg = err.message || "Authentication failed. Please try again.";
       if (msg.includes("Invalid login credentials")) {
@@ -105,10 +137,7 @@ export function AuthModal({ isOpen, onClose, onAuthSuccess }) {
 
         {/* Close Button */}
         <button
-          onClick={() => {
-            soundFx.playClick();
-            onClose();
-          }}
+          onClick={handleClose}
           className="absolute top-5 right-5 p-2 rounded-xl text-slate-400 hover:text-white bg-white/[0.04] hover:bg-white/[0.08] transition-colors"
         >
           <X className="w-5 h-5" />
@@ -133,11 +162,7 @@ export function AuthModal({ isOpen, onClose, onAuthSuccess }) {
         <div className="grid grid-cols-2 gap-1 p-1 bg-white/[0.03] border border-white/[0.06] rounded-2xl mb-5">
           <button
             type="button"
-            onClick={() => {
-              soundFx.playClick();
-              setMode("login");
-              setError(null);
-            }}
+            onClick={() => handleModeChange("login")}
             className={`py-2 text-xs font-mono font-bold rounded-xl transition-all ${
               mode === "login"
                 ? "bg-brand-medium/30 text-brand-lime border border-brand-light/40 shadow-sm"
@@ -148,11 +173,7 @@ export function AuthModal({ isOpen, onClose, onAuthSuccess }) {
           </button>
           <button
             type="button"
-            onClick={() => {
-              soundFx.playClick();
-              setMode("register");
-              setError(null);
-            }}
+            onClick={() => handleModeChange("register")}
             className={`py-2 text-xs font-mono font-bold rounded-xl transition-all ${
               mode === "register"
                 ? "bg-brand-medium/30 text-brand-lime border border-brand-light/40 shadow-sm"
