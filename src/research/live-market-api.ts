@@ -1,5 +1,5 @@
-import { EvidenceItem } from "./evidence";
-import yahooFinance from "yahoo-finance2";
+import YahooFinance from "yahoo-finance2";
+const yf = typeof YahooFinance === "function" ? new YahooFinance() : YahooFinance;
 
 /**
  * Production Live Financial Market Data Ingestion Engine (Step 1)
@@ -14,7 +14,7 @@ export async function fetchLiveMarketData(ticker: string, market: string = "US")
 
   try {
     // 1. Ingest Comprehensive Real-Time Financial Quote & Fundamental Summary
-    const summary: any = await yahooFinance.quoteSummary(formattedTicker, {
+    const summary: any = await (yf as any).quoteSummary(formattedTicker, {
       modules: ["price", "summaryDetail", "financialData", "defaultKeyStatistics", "assetProfile"]
     });
 

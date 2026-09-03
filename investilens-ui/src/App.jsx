@@ -9,6 +9,9 @@ import HowItWorksModal from "./components/HowItWorksModal.jsx";
 import HumanApprovalModal from "./components/HumanApprovalModal.jsx";
 import BackendConfigModal from "./components/BackendConfigModal.jsx";
 import { WatchlistModal } from "./components/WatchlistModal.jsx";
+import { AuthModal } from "./components/AuthModal.jsx";
+import { HistoryModal } from "./components/HistoryModal.jsx";
+import { authService } from "./services/authService.js";
 import { saveStockToWatchlist } from "./services/watchlistService.js";
 import { MOCK_STOCKS } from "./data/mockStocks.js";
 import { soundFx } from "./services/soundFx.js";
@@ -168,13 +171,15 @@ export default function App() {
   // Experience level: "beginner" | "advanced"
   const [userLevel, setUserLevel] = useState("beginner");
 
-  // How It Works Modal State
+  // Authentication State
+  const [currentUser, setCurrentUser] = useState(null);
+  const [historyCount, setHistoryCount] = useState(0);
+
+  // Modals
   const [isHowItWorksOpen, setIsHowItWorksOpen] = useState(false);
-
-  // Watchlist Modal State
   const [isWatchlistOpen, setIsWatchlistOpen] = useState(false);
-
-  // Human Checkpoint #2 Modal State
+  const [isAuthOpen, setIsAuthOpen] = useState(false);
+  const [isHistoryOpen, setIsHistoryOpen] = useState(false);
   const [checkpointModalType, setCheckpointModalType] = useState(null); // null | "findings"
 
   // Parameters & Configuration
@@ -221,11 +226,83 @@ export default function App() {
     return new Promise((res) => setTimeout(res, ms * multiplier));
   };
 
+  const refreshUserSession = async () => {
+    try {
+      const userRes = await authService.getCurrentUser();
+      if (userRes && userRes.user) {
+        setCurrentUser(userRes.user);
+        if (userRes.stats) {
+          setHistoryCount(userRes.stats.totalResearches || 0);
+        } else {
+          const history = await authService.getHistory();
+          setHistoryCount(history.length);
+        }
+      } else {
+        setCurrentUser(null);
+        setHistoryCount(0);
+      }
+    } catch (err) {
+      console.warn("Auth initialization note:", err);
+    }
+  };
+
+  // Check auth and history on initial load
   useEffect(() => {
+    refreshUserSession();
+
     return () => {
       if (pollingRef.current) clearInterval(pollingRef.current);
     };
   }, []);
+
+  const handleAuthSuccess = (user) => {
+    setCurrentUser(user);
+    refreshUserSession();
+  };
+
+  const handleLogout = async () => {
+    await authService.logout();
+    setCurrentUser(null);
+    setHistoryCount(0);
+    soundFx.playClick();
+  };
+
+  // Called when user selects a saved history item from the History Modal
+  const handleSelectHistoryItem = (historyItem) => {
+    soundFx.playClick();
+    if (historyItem.params) {
+      setParams((prev) => ({
+        ...prev,
+        ...historyItem.params,
+        ticker: historyItem.ticker,
+        companyQuery: historyItem.companyName
+      }));
+    }
+
+    if (historyItem.reportData) {
+      const mapped = mapReportToStockData(historyItem.reportData, historyItem.params || params, userLevel);
+      setActiveStockData(mapped);
+    } else if (historyItem.stockData) {
+      setActiveStockData(historyItem.stockData);
+    } else {
+      // Reconstruct stock data from history item fields
+      const stockKey = historyItem.ticker in MOCK_STOCKS ? historyItem.ticker : "NVIDIA";
+      const baseStock = MOCK_STOCKS[stockKey] || MOCK_STOCKS["NVIDIA"];
+      setActiveStockData({
+        ...baseStock,
+        name: historyItem.companyName,
+        ticker: historyItem.ticker,
+        market: historyItem.market,
+        sector: historyItem.sector,
+        overallScore: historyItem.score,
+        rating: historyItem.rating,
+        evidenceConfidence: historyItem.confidence || "HIGH",
+        summary: historyItem.summary
+      });
+    }
+
+    setCurrentView("results");
+  };
 
   // Called when user finishes Conversational Onboarding -> Transition to Research Plan Map
   const handleCompleteSetup = async () => {
@@ -249,7 +326,7 @@ export default function App() {
     try {
       const res = await fetch("/api/research/start", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: authService.getAuthHeaders(),
         body: JSON.stringify({
           company: params.companyQuery,
           ticker: resolvedTicker,
@@ -285,13 +362,18 @@ export default function App() {
 
     if (activeRecordId) {
       try {
-        await fetch(`/api/research/${activeRecordId}/approve-plan`, { method: "POST" });
+        await fetch(`/api/research/${activeRecordId}/approve-plan`, {
+          method: "POST",
+          headers: authService.getAuthHeaders()
+        });
         
         // Start polling backend live stream
         if (pollingRef.current) clearInterval(pollingRef.current);
         pollingRef.current = setInterval(async () => {
           try {
-            const res = await fetch(`/api/research/${activeRecordId}/status`);
+            const res = await fetch(`/api/research/${activeRecordId}/status`, {
+              headers: authService.getAuthHeaders()
+            });
             if (!res.ok) return;
             const data = await res.json();
             const rec = data.record;
@@ -392,18 +474,44 @@ export default function App() {
     setBrowserStatus("Compiling 18-Section Research Dossier");
     addLog("checkpoint", "Human Approval Checkpoint #2 GRANTED: Final findings authorized. Generating comprehensive investment research dossier.");
 
+    let finalMappedStock = activeStockData;
+
     if (activeRecordId) {
       try {
-        const res = await fetch(`/api/research/${activeRecordId}/approve-final`, { method: "POST" });
+        const res = await fetch(`/api/research/${activeRecordId}/approve-final`, {
+          method: "POST",
+          headers: authService.getAuthHeaders()
+        });
         if (res.ok) {
           const data = await res.json();
           if (data.report) {
-            const mapped = mapReportToStockData(data.report, params, userLevel);
-            setActiveStockData(mapped);
+            finalMappedStock = mapReportToStockData(data.report, params, userLevel);
+            setActiveStockData(finalMappedStock);
           }
         }
       } catch (err) {
         console.warn("Backend approve-final fallback:", err.message);
+      }
+    }
+
+    // Save to user history in Supabase / Database if user is logged in
+    if (currentUser) {
+      try {
+        await authService.saveHistoryItem({
+          ticker: finalMappedStock.ticker || params.ticker || "NVDA",
+          companyName: finalMappedStock.name || params.companyQuery,
+          market: finalMappedStock.market || params.market,
+          sector: finalMappedStock.sector || params.sector,
+          score: finalMappedStock.overallScore || 82,
+          rating: finalMappedStock.rating || "Moderate Buy",
+          confidence: finalMappedStock.evidenceConfidence || "HIGH",
+          summary: finalMappedStock.summary || "Multi-source verified investment research dossier.",
+          params,
+          stockData: finalMappedStock
+        });
+        refreshUserSession();
+      } catch (e) {
+        console.warn("Failed to persist research dossier:", e);
       }
     }
 
@@ -420,9 +528,14 @@ export default function App() {
     <div className="min-h-screen bg-[#060907] text-[#f4f8f4] flex flex-col font-sans selection:bg-[#7ED043]/30 selection:text-[#F0FB43]">
       {/* Top Header */}
       <Header
+        currentUser={currentUser}
+        historyCount={historyCount}
         onStart={() => setCurrentView("onboarding")}
         onOpenHowItWorks={() => setIsHowItWorksOpen(true)}
         onOpenWatchlist={() => setIsWatchlistOpen(true)}
+        onOpenHistory={() => setIsHistoryOpen(true)}
+        onOpenAuth={() => setIsAuthOpen(true)}
+        onLogout={handleLogout}
         onGoHome={() => setCurrentView("hero")}
       />
 
@@ -484,7 +597,22 @@ export default function App() {
         )}
       </main>
 
-      {/* Portfolio Watchlist & Multi-Asset Tracking Modal (Improvement 6) */}
+      {/* User Authentication Modal */}
+      <AuthModal
+        isOpen={isAuthOpen}
+        onClose={() => setIsAuthOpen(false)}
+        onAuthSuccess={handleAuthSuccess}
+      />
+
+      {/* Research History Modal */}
+      <HistoryModal
+        isOpen={isHistoryOpen}
+        onClose={() => setIsHistoryOpen(false)}
+        onSelectHistoryItem={handleSelectHistoryItem}
+        onAuthRequired={() => setIsAuthOpen(true)}
+      />
+
+      {/* Portfolio Watchlist Modal */}
       <WatchlistModal
         isOpen={isWatchlistOpen}
         onClose={() => setIsWatchlistOpen(false)}

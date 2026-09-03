@@ -15,6 +15,7 @@
   "license": "MIT",
   "type": "commonjs",
   "dependencies": {
+    "@supabase/supabase-js": "^2.114.0",
     "tsx": "^4.23.12",
     "typescript": "^7.0.2",
     "yahoo-finance2": "^4.0.2"

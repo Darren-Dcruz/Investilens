@@ -13,6 +13,8 @@ import { buildResearchReport } from "./research/research-report";
 import { ResearchRecord } from "./research/research-record";
 import { APPROVED_SOURCES } from "./research/sources";
 import { researchCache } from "./research/cache";
+import { db, ResearchHistoryItem } from "./db";
+import { registerUser, loginUser, getAuthenticatedUser } from "./auth";
 
 const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 3008;
 const UI_DIST_DIR = path.join(__dirname, "..", "investilens-ui", "dist");
@@ -33,6 +35,8 @@ const records: Map<string, ResearchRecord> = new Map();
 const reports: Map<string, any> = new Map();
 const activeLogs: Map<string, string[]> = new Map();
 const webcmdLogs: Map<string, WebcmdLogEntry[]> = new Map();
+const recordUserMap: Map<string, string> = new Map(); // recordId -> userId
+const recordParamsMap: Map<string, any> = new Map(); // recordId -> input params
 
 function addLog(recordId: string, message: string) {
   if (!activeLogs.has(recordId)) {
@@ -57,6 +61,34 @@ function addWebcmdLog(recordId: string, entry: Omit<WebcmdLogEntry, "timestamp">
     timestamp,
     ...entry
   });
+}
+
+function saveRecordToHistory(recordId: string, record: ResearchRecord, report: any) {
+  const userId = recordUserMap.get(recordId);
+  if (!userId) return;
+
+  const params = recordParamsMap.get(recordId) || {};
+  const ticker = record.company.ticker || params.ticker || "UNKNOWN";
+  const companyName = record.company.name || params.company || params.companyQuery || ticker;
+
+  const summary = report?.executiveSummary || 
+    `${companyName} fundamental & quantitative research completed with score of ${record.scoring?.overallScore || 75}/100.`;
+
+  db.addHistoryItem({
+    userId,
+    ticker,
+    companyName,
+    market: record.userProfile?.market || params.market || "Global",
+    sector: record.userProfile?.sector || params.sector || "Equity Research",
+    score: record.scoring?.overallScore || 75,
+    rating: record.scoring?.rating || "Moderate Buy",
+    confidence: record.confidenceLevel || "HIGH",
+    summary,
+    params,
+    reportData: report,
+    stockData: null
+  });
+  console.log(`[DB] Saved research session for ${ticker} to user ${userId} history.`);
 }
 
 async function runResearchPipeline(recordId: string) {
@@ -192,9 +224,24 @@ function checkRateLimit(ip: string): boolean {
     requestCounts.set(ip, { count: 1, resetAt: now + 60000 }); // 60 requests per minute
     return true;
   }
-  if (entry.count >= 120) return false;
+  if (entry.count >= 240) return false;
   entry.count++;
   return true;
+}
+
+function parseBody(req: http.IncomingMessage): Promise<any> {
+  return new Promise((resolve, reject) => {
+    let body = "";
+    req.on("data", (chunk) => (body += chunk));
+    req.on("end", () => {
+      try {
+        resolve(body ? JSON.parse(body) : {});
+      } catch (e) {
+        reject(new Error("Invalid JSON body"));
+      }
+    });
+    req.on("error", (err) => reject(err));
+  });
 }
 
 const server = http.createServer(async (req, res) => {
@@ -204,8 +251,8 @@ const server = http.createServer(async (req, res) => {
 
   // Set CORS headers
   res.setHeader("Access-Control-Allow-Origin", "*");
-  res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
+  res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization, x-auth-token");
 
   if (req.method === "OPTIONS") {
     res.writeHead(204);
@@ -216,18 +263,230 @@ const server = http.createServer(async (req, res) => {
   // Enforce Rate Limit for API endpoints
   if (pathname.startsWith("/api/") && !checkRateLimit(clientIp)) {
     res.writeHead(429, { "Content-Type": "application/json" });
-    res.end(JSON.stringify({ error: "Too many requests. Rate limit is 120 requests/minute. Please slow down." }));
+    res.end(JSON.stringify({ error: "Too many requests. Rate limit is 240 requests/minute. Please slow down." }));
     return;
   }
 
-  // HEALTH CHECK (STEP 4)
+  // HEALTH CHECK
   if (pathname === "/health" || pathname === "/api/health") {
     res.writeHead(200, { "Content-Type": "application/json" });
-    res.end(JSON.stringify({ status: "healthy", service: "InvestiLens Engine", version: "2.5.0", timestamp: new Date().toISOString() }));
+    res.end(JSON.stringify({ status: "healthy", service: "InvestiLens Engine with Auth & History", version: "3.0.0", timestamp: new Date().toISOString() }));
     return;
   }
 
-  // API ROUTES
+  // ==========================================
+  // AUTHENTICATION ROUTES
+  // ==========================================
+  if (pathname === "/api/auth/register" && req.method === "POST") {
+    try {
+      const payload = await parseBody(req);
+      const result = registerUser({
+        username: payload.username,
+        email: payload.email,
+        password: payload.password,
+        name: payload.name
+      });
+      res.writeHead(201, { "Content-Type": "application/json" });
+      res.end(JSON.stringify(result));
+    } catch (err: any) {
+      res.writeHead(400, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({ error: err.message || "Registration failed" }));
+    }
+    return;
+  }
+
+  if (pathname === "/api/auth/login" && req.method === "POST") {
+    try {
+      const payload = await parseBody(req);
+      const result = loginUser({
+        identifier: payload.identifier || payload.email || payload.username,
+        password: payload.password
+      });
+      res.writeHead(200, { "Content-Type": "application/json" });
+      res.end(JSON.stringify(result));
+    } catch (err: any) {
+      res.writeHead(401, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({ error: err.message || "Authentication failed" }));
+    }
+    return;
+  }
+
+  if (pathname === "/api/auth/logout" && req.method === "POST") {
+    const authHeader = req.headers["authorization"] || "";
+    let token = authHeader.startsWith("Bearer ") ? authHeader.substring(7).trim() : "";
+    if (token) {
+      db.deleteSession(token);
+    }
+    res.writeHead(200, { "Content-Type": "application/json" });
+    res.end(JSON.stringify({ success: true, message: "Logged out successfully" }));
+    return;
+  }
+
+  if (pathname === "/api/auth/me" && req.method === "GET") {
+    const user = getAuthenticatedUser(req);
+    if (!user) {
+      res.writeHead(401, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({ error: "Not authenticated" }));
+      return;
+    }
+    const history = db.getUserHistory(user.id);
+    const watchlist = db.getUserWatchlist(user.id);
+    res.writeHead(200, { "Content-Type": "application/json" });
+    res.end(JSON.stringify({
+      user,
+      stats: {
+        totalResearches: history.length,
+        watchlistCount: watchlist.length
+      }
+    }));
+    return;
+  }
+
+  // ==========================================
+  // RESEARCH HISTORY ROUTES
+  // ==========================================
+  if (pathname === "/api/history" && req.method === "GET") {
+    const user = getAuthenticatedUser(req);
+    if (!user) {
+      res.writeHead(401, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({ error: "Authentication required to view research history" }));
+      return;
+    }
+    const history = db.getUserHistory(user.id);
+    res.writeHead(200, { "Content-Type": "application/json" });
+    res.end(JSON.stringify(history));
+    return;
+  }
+
+  if (pathname === "/api/history" && req.method === "POST") {
+    const user = getAuthenticatedUser(req);
+    if (!user) {
+      res.writeHead(401, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({ error: "Authentication required to save research history" }));
+      return;
+    }
+    try {
+      const payload = await parseBody(req);
+      const item = db.addHistoryItem({
+        userId: user.id,
+        ticker: (payload.ticker || "UNKNOWN").toUpperCase(),
+        companyName: payload.companyName || payload.name || payload.ticker,
+        market: payload.market || "United States",
+        sector: payload.sector || "Equity Research",
+        score: payload.score ?? payload.overallScore ?? 75,
+        rating: payload.rating || "Moderate Buy",
+        confidence: payload.confidence || payload.evidenceConfidence || "HIGH",
+        summary: payload.summary || "Fundamental and quantitative investment research dossier.",
+        params: payload.params || {},
+        reportData: payload.reportData || null,
+        stockData: payload.stockData || null
+      });
+      res.writeHead(201, { "Content-Type": "application/json" });
+      res.end(JSON.stringify(item));
+    } catch (err: any) {
+      res.writeHead(400, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({ error: err.message }));
+    }
+    return;
+  }
+
+  const historyItemMatch = pathname.match(/^\/api\/history\/([^/]+)$/);
+  if (historyItemMatch) {
+    const historyId = historyItemMatch[1];
+    const user = getAuthenticatedUser(req);
+    if (!user) {
+      res.writeHead(401, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({ error: "Authentication required" }));
+      return;
+    }
+
+    if (req.method === "GET") {
+      const item = db.getHistoryItem(historyId, user.id);
+      if (!item) {
+        res.writeHead(404, { "Content-Type": "application/json" });
+        res.end(JSON.stringify({ error: "History item not found" }));
+        return;
+      }
+      res.writeHead(200, { "Content-Type": "application/json" });
+      res.end(JSON.stringify(item));
+      return;
+    }
+
+    if (req.method === "DELETE") {
+      const deleted = db.deleteHistoryItem(historyId, user.id);
+      if (!deleted) {
+        res.writeHead(404, { "Content-Type": "application/json" });
+        res.end(JSON.stringify({ error: "History item not found or already deleted" }));
+        return;
+      }
+      res.writeHead(200, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({ success: true, message: "History item deleted" }));
+      return;
+    }
+  }
+
+  // ==========================================
+  // USER WATCHLIST ROUTES
+  // ==========================================
+  if (pathname === "/api/user/watchlist" && req.method === "GET") {
+    const user = getAuthenticatedUser(req);
+    if (!user) {
+      res.writeHead(401, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({ error: "Authentication required" }));
+      return;
+    }
+    const list = db.getUserWatchlist(user.id);
+    res.writeHead(200, { "Content-Type": "application/json" });
+    res.end(JSON.stringify(list));
+    return;
+  }
+
+  if (pathname === "/api/user/watchlist" && req.method === "POST") {
+    const user = getAuthenticatedUser(req);
+    if (!user) {
+      res.writeHead(401, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({ error: "Authentication required" }));
+      return;
+    }
+    try {
+      const payload = await parseBody(req);
+      const item = db.addToWatchlist({
+        userId: user.id,
+        ticker: payload.ticker,
+        name: payload.name || payload.ticker,
+        market: payload.market,
+        price: payload.price,
+        change: payload.change,
+        rating: payload.rating,
+        score: payload.score
+      });
+      res.writeHead(200, { "Content-Type": "application/json" });
+      res.end(JSON.stringify(item));
+    } catch (err: any) {
+      res.writeHead(400, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({ error: err.message }));
+    }
+    return;
+  }
+
+  const watchlistDeleteMatch = pathname.match(/^\/api\/user\/watchlist\/([^/]+)$/);
+  if (watchlistDeleteMatch && req.method === "DELETE") {
+    const user = getAuthenticatedUser(req);
+    if (!user) {
+      res.writeHead(401, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({ error: "Authentication required" }));
+      return;
+    }
+    const tickerOrId = watchlistDeleteMatch[1];
+    db.removeFromWatchlist(tickerOrId, user.id);
+    res.writeHead(200, { "Content-Type": "application/json" });
+    res.end(JSON.stringify({ success: true }));
+    return;
+  }
+
+  // ==========================================
+  // RESEARCH PIPELINE ROUTES
+  // ==========================================
   if (pathname === "/api/sources" && req.method === "GET") {
     res.writeHead(200, { "Content-Type": "application/json" });
     res.end(JSON.stringify(Object.values(APPROVED_SOURCES)));
@@ -235,43 +494,45 @@ const server = http.createServer(async (req, res) => {
   }
 
   if (pathname === "/api/research/start" && req.method === "POST") {
-    let body = "";
-    req.on("data", (chunk) => (body += chunk));
-    req.on("end", async () => {
-      try {
-        const payload = JSON.parse(body || "{}");
-        const record = await researchCompany({
-          company: payload.company || "NVIDIA",
-          ticker: payload.ticker || "NVDA",
-          market: payload.market || "US",
-          sector: payload.sector || "Semiconductors & AI Hardware",
-          risk: payload.risk || "medium",
-          horizon: payload.horizon || "3-5 years",
-          amount: payload.amount || 50000,
-          experience: payload.experience || "Beginner"
-        });
+    try {
+      const user = getAuthenticatedUser(req);
+      const payload = await parseBody(req);
+      const record = await researchCompany({
+        company: payload.company || "NVIDIA",
+        ticker: payload.ticker || "NVDA",
+        market: payload.market || "US",
+        sector: payload.sector || "Semiconductors & AI Hardware",
+        risk: payload.risk || "medium",
+        horizon: payload.horizon || "3-5 years",
+        amount: payload.amount || 50000,
+        experience: payload.experience || "Beginner"
+      });
 
-        records.set(record.id, record);
-        addLog(record.id, `Created research plan for ${record.company.name} (${record.company.ticker}) with ${record.plan?.tasks.length} dimensions.`);
-        addLog(record.id, "Waiting for Human Approval #1 to execute web research.");
-
-        addWebcmdLog(record.id, {
-          skill: "webcmd-browser v2.4",
-          command: "skill.initialize",
-          targetUrl: "local::webcmd-agent",
-          action: "open",
-          status: "success",
-          durationMs: 12,
-          details: "Registered webcmd-browser tool for multi-source investment research"
-        });
-
-        res.writeHead(200, { "Content-Type": "application/json" });
-        res.end(JSON.stringify(record));
-      } catch (err: any) {
-        res.writeHead(400, { "Content-Type": "application/json" });
-        res.end(JSON.stringify({ error: err.message }));
+      records.set(record.id, record);
+      recordParamsMap.set(record.id, payload);
+      if (user) {
+        recordUserMap.set(record.id, user.id);
       }
-    });
+
+      addLog(record.id, `Created research plan for ${record.company.name} (${record.company.ticker}) with ${record.plan?.tasks.length} dimensions.`);
+      addLog(record.id, "Waiting for Human Approval #1 to execute web research.");
+
+      addWebcmdLog(record.id, {
+        skill: "webcmd-browser v2.4",
+        command: "skill.initialize",
+        targetUrl: "local::webcmd-agent",
+        action: "open",
+        status: "success",
+        durationMs: 12,
+        details: "Registered webcmd-browser tool for multi-source investment research"
+      });
+
+      res.writeHead(200, { "Content-Type": "application/json" });
+      res.end(JSON.stringify(record));
+    } catch (err: any) {
+      res.writeHead(400, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({ error: err.message }));
+    }
     return;
   }
 
@@ -352,6 +613,9 @@ const server = http.createServer(async (req, res) => {
       records.set(recordId, record);
       addLog(recordId, "Investment Research Report compiled successfully.");
 
+      // Save to user history automatically if user is attached
+      saveRecordToHistory(recordId, record, report);
+
       res.writeHead(200, { "Content-Type": "application/json" });
       res.end(JSON.stringify({ record, report }));
     } catch (err: any) {
@@ -413,5 +677,6 @@ server.listen(PORT, () => {
   console.log(`============================================================`);
   console.log(` INVESTILENS WEB DASHBOARD SERVER RUNNING`);
   console.log(` Local URL: http://localhost:${PORT}`);
+  console.log(` API Ready with Auth & Research History Database`);
   console.log(`============================================================`);
 });
